@@ -1,6 +1,8 @@
 HTransform
 ======
 
+[![Build Status](https://travis-ci.org/joshkrueger/htransform.svg?branch=master)](https://travis-ci.org/joshkrueger/htransform)
+
 HTransform provides a simple DSL to transform a supplied hash with an arbitrary structure to another hash with an even more arbitrary structure.
 
 ***Note:*** *HTransform does not simply modify the hash you have passed in. It actually creates a new hash from scratch. It only copies or does transformations on the fields you specify in the transform block.*
