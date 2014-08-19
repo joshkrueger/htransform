@@ -24,6 +24,7 @@ class HTransform
     @output_hash = Hash.new { |h,k| h[k] = Hash.new(&h.default_proc) }
     @input_nest = []
     @output_nest = []
+    @inputs = Set.new
   end
 
   def convert(input)
@@ -42,6 +43,14 @@ class HTransform
   end
 
   private
+
+  def record(*keys)
+    keys.each{ |key| @inputs << key }
+  end
+
+  def recorded?(key)
+    @inputs.include? key
+  end
 
   def set_val(dst, val)
 
@@ -118,6 +127,12 @@ class HTransform
     end
   end
 
+  def passthrough_remaining
+    @input_hash.each_key do |key|
+      passthrough(key) unless recorded?(key)
+    end
+  end
+
   def input_multiple(options)
     from, to, via, default = parse_options(options)
     via = lambda { |x| x.join(" ") } if via.nil?
@@ -139,7 +154,7 @@ class HTransform
       end
     end
 
-
+    record(*from)
     set_val(to, new_value)
   end
 
@@ -166,6 +181,7 @@ class HTransform
       get_val(from)
     end
 
+    record(*from)
     set_val(to, new_value)
   end
 

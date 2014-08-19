@@ -367,6 +367,99 @@ describe HTransform do
 
   end
 
+  context "passthrough_remaining" do
+    it "passes all keys that were not specified in an #input through" do
+      class TestHTransform < HTransform
+        transform do
+          input :bar => :bar_key
+          passthrough :foo
+          passthrough_remaining
+        end
+      end
+
+      input_hash = { :bar => 'one', :foo => 1, :lala => nil, :lolo => 1 }
+      desired_hash = { :bar_key => 'one', :foo => 1, :lala => nil, :lolo => 1 }
+
+      result = TestHTransform.convert(input_hash)
+      result.should == desired_hash
+    end
+
+    it "treats #input_multiple keys as distinct, and does not pass them through" do
+      class TestHTransform < HTransform
+        transform do
+          input_multiple [:bar, :key] => :bar_key
+          passthrough_remaining
+        end
+      end
+
+      input_hash = { :bar => 'one', :key => 'two', :lala => nil, :lolo => 1 }
+      desired_hash = { :bar_key => 'one two', :lala => nil, :lolo => 1 }
+
+      result = TestHTransform.convert(input_hash)
+      result.should == desired_hash
+    end
+
+    it "treats nested inputs as distinct, and does not pass them through" do
+      class TestHTransform < HTransform
+        transform do
+          input [:outer, :bar] => :sandbar
+          passthrough_remaining
+        end
+      end
+
+      input_hash = { :outer => { :bar => 1 }, :bar => :bie, :outer2 => { :bar2 => 2 } }
+      desired_hash = { :sandbar => 1, :outer2 => { :bar2 => 2 } }
+
+      result = TestHTransform.convert(input_hash)
+      result.should == desired_hash
+    end
+
+    it "passes through nested outputs if they were not used as inputs" do
+      class TestHTransform < HTransform
+        transform do
+          input :sandbar => [:outer, :bar]
+          passthrough_remaining
+        end
+      end
+
+      input_hash = { :sandbar => { :inner => 1 }, :bar => :bie, :outer2 => { :bar2 => 2 } }
+      desired_hash = { :outer => { :bar => { :inner => 1 } }, :bar => :bie, :outer2 => { :bar2 => 2 } }
+
+      result = TestHTransform.convert(input_hash)
+      result.should == desired_hash
+    end
+
+    it "Only not passthrough the inputs in a nested-nested situation" do
+      class TestHTransform < HTransform
+        transform do
+          input [:sand, :bar] => [:outer, :otter]
+          passthrough_remaining
+        end
+      end
+
+      input_hash = { :sand => { :bar => 1 }, :bar => :bie, :otter => 2 }
+      desired_hash = { :outer => { :otter => 1 }, :otter => 2 }
+
+      result = TestHTransform.convert(input_hash)
+      result.should == desired_hash
+    end
+
+    it "Treats array-keys as a single entity, and passes their individual components through" do
+      class TestHTransform < HTransform
+        transform do
+          input [[:sand, :bar], :baz] => :combo_bar
+          passthrough_remaining
+        end
+      end
+
+      input_hash = { [:sand, :bar] => { :baz => 1 }, :bar => :bie, :baz => :ket, :otter => 2 }
+      desired_hash = { :combo_bar => 1, :bar => :bie, :otter => 2 }
+
+      result = TestHTransform.convert(input_hash)
+      result.should == desired_hash
+    end
+  end
+
   context "non-hashes" do
     it "works with objects that respond to to_hash" do
       class TestHTransform < HTransform

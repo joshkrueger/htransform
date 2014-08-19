@@ -5,7 +5,7 @@ HTransform
 
 HTransform provides a simple DSL to transform a supplied hash with an arbitrary structure to another hash with an even more arbitrary structure.
 
-***Note:*** *HTransform does not simply modify the hash you have passed in. It actually creates a new hash from scratch. It only copies or does transformations on the fields you specify in the transform block.*
+***Note:*** *HTransform does not simply modify the hash you have passed in. It actually creates a new hash from scratch. It only copies or does transformations on the fields you specify in the transform block, unless you use the `passthrough_remaining` option (see below)*
 
 Support
 =======
@@ -131,6 +131,16 @@ into
 Want to combine multiple inputs when one or more are an array?
 
         input [ [ "foo", "bar" ], "baz" ] => "combined nested hash"
+
+Want to simply pass some parts of your original hash through? Simply specify the keys you want passed through:
+
+        passthrough :this_one, :that_one
+
+Want to pass every part of your original hash that was not transformed through? **HTransform CAN DO THAT TOO!** Simply add the following at the _end_ of your `transform` block:
+
+        passthrough_remaining
+
+***Note:*** *You MUST specify it only at the end of your `transform` block, as Tranny needs to know all the keys that were transformed before it!*
 
 Shorthand Limitations
 ==============
