@@ -140,7 +140,7 @@ Want to pass every part of your original hash that was not transformed through? 
 
         passthrough_remaining
 
-***Note:*** *You MUST specify it only at the end of your `transform` block, as Tranny needs to know all the keys that were transformed before it!*
+***Note:*** *You MUST specify it only at the end of your `transform` block, as HTransform needs to know all the keys that were transformed before it!*
 
 Shorthand Limitations
 ==============
