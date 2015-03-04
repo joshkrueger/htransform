@@ -7,7 +7,7 @@ Gem::Specification.new do |s|
   s.version     = HTransform::VERSION
   s.authors     = ["Josh Krueger"]
   s.email       = ["joshsinbox@gmail.com"]
-  s.homepage    = ""
+  s.homepage    = "https://github.com/joshkrueger/htransform"
   s.summary     = %q{HTransform transforms your hashes}
   s.description = %q{HTransform provides a simple DSL to transform arbitrary hashes into another, more arbitrary hash. Yay.}
 
