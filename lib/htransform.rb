@@ -122,6 +122,7 @@ class HTransform
     options.each do |k|
       begin
         input_value = get_val!(k)
+        @rejected.delete(k)
         set_val(k, input_value)
       rescue ValueNotPresentError
       end
