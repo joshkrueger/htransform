@@ -17,12 +17,11 @@ class HTransform
     def transform(&trans_block)
       @transform_block = trans_block
     end
-
   end
 
   def initialize
     @output_hash = Hash.new { |h,k| h[k] = Hash.new(&h.default_proc) }
-    @input_nest, @output_nest = [], []
+    @rejected, @input_nest, @output_nest = [], [], []
     @inputs = Set.new
   end
 
@@ -94,6 +93,10 @@ class HTransform
     end
   end
 
+  def rejected?(src)
+    @rejected.include?(src)
+  end
+
   def parse_options(options)
     from, to, via, default = nil
 
@@ -125,9 +128,13 @@ class HTransform
     end
   end
 
+  def reject(*options)
+    options.each { |k| @rejected << k }
+  end
+
   def passthrough_remaining
     @input_hash.each_key do |key|
-      passthrough(key) unless recorded?(key)
+      passthrough(key) unless recorded?(key) || rejected?(key)
     end
   end
 
