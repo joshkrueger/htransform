@@ -168,6 +168,7 @@ class HTransform
     from, to, via, default = parse_options(options)
     return if !key_present?(from) && default.nil?
 
+    @rejected.delete(from)
     new_value = if get_val(from).nil? && !default.nil?
       default.respond_to?(:call) ? default.call : default
     elsif via.is_a? Proc

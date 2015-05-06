@@ -419,6 +419,24 @@ describe HTransform do
       result.should == desired_hash
     end
 
+    it "rejects keys but is overridden by explicit transforms" do
+      class TestHTransform < HTransform
+        transform do
+          input :bar => :bar_key
+          passthrough :foo
+          reject :foobar
+          input :foobar => :foobar_key
+          passthrough_remaining
+        end
+      end
+
+      input_hash = { :bar => 'one', :foo => 1, :lala => nil, :lolo => 1, :foobar => 'yaya' }
+      desired_hash = { :bar_key => 'one', :foo => 1, :lala => nil, :lolo => 1, :foobar_key => 'yaya' }
+
+      result = TestHTransform.convert(input_hash)
+      result.should == desired_hash
+    end
+
     it "treats #input_multiple keys as distinct, and does not pass them through" do
       class TestHTransform < HTransform
         transform do
