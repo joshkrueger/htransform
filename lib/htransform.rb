@@ -17,32 +17,29 @@ class HTransform
     def transform(&trans_block)
       @transform_block = trans_block
     end
-
   end
 
   def initialize
     @output_hash = Hash.new { |h,k| h[k] = Hash.new(&h.default_proc) }
-    @input_nest = []
-    @output_nest = []
+    @rejected, @input_nest, @output_nest = [], [], []
     @inputs = Set.new
   end
 
   def convert(input)
-
-    unless input.is_a? Hash
-      if input.respond_to? :to_hash
-        input = input.to_hash
-      else
-        raise ArgumentError "object is not a Hash or does not respond to to_hash"
-      end
-    end
-
-    @input_hash = input
+    @input_hash = input_hash(input)
     instance_exec(&self.class.transform_block)
     Hash[@output_hash]
   end
 
   private
+
+  def input_hash(input)
+    unless input.is_a?(Hash)
+      return input.to_hash if input.respond_to?(:to_hash)
+      raise ArgumentError "object is not a Hash or does not respond to to_hash"
+    end
+    input
+  end
 
   def record(*keys)
     keys.each{ |key| @inputs << key }
@@ -96,6 +93,10 @@ class HTransform
     end
   end
 
+  def rejected?(src)
+    @rejected.include?(src)
+  end
+
   def parse_options(options)
     from, to, via, default = nil
 
@@ -121,15 +122,20 @@ class HTransform
     options.each do |k|
       begin
         input_value = get_val!(k)
+        @rejected.delete(k)
         set_val(k, input_value)
       rescue ValueNotPresentError
       end
     end
   end
 
+  def reject(*options)
+    options.each { |k| @rejected << k }
+  end
+
   def passthrough_remaining
     @input_hash.each_key do |key|
-      passthrough(key) unless recorded?(key)
+      passthrough(key) unless recorded?(key) || rejected?(key)
     end
   end
 
@@ -162,6 +168,7 @@ class HTransform
     from, to, via, default = parse_options(options)
     return if !key_present?(from) && default.nil?
 
+    @rejected.delete(from)
     new_value = if get_val(from).nil? && !default.nil?
       default.respond_to?(:call) ? default.call : default
     elsif via.is_a? Proc
