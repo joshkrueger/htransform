@@ -22,27 +22,25 @@ class HTransform
 
   def initialize
     @output_hash = Hash.new { |h,k| h[k] = Hash.new(&h.default_proc) }
-    @input_nest = []
-    @output_nest = []
+    @input_nest, @output_nest = [], []
     @inputs = Set.new
   end
 
   def convert(input)
-
-    unless input.is_a? Hash
-      if input.respond_to? :to_hash
-        input = input.to_hash
-      else
-        raise ArgumentError "object is not a Hash or does not respond to to_hash"
-      end
-    end
-
-    @input_hash = input
+    @input_hash = input_hash(input)
     instance_exec(&self.class.transform_block)
     Hash[@output_hash]
   end
 
   private
+
+  def input_hash(input)
+    unless input.is_a?(Hash)
+      return input.to_hash if input.respond_to?(:to_hash)
+      raise ArgumentError "object is not a Hash or does not respond to to_hash"
+    end
+    input
+  end
 
   def record(*keys)
     keys.each{ |key| @inputs << key }
